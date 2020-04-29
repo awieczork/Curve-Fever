@@ -15,12 +15,10 @@ def PlayCurveFever(statusRefImg):
     color = np.array((69, 69, 255)) # red
     colMin = color - 20
     colMax = color + 20
-    fps = []
     states = []
-    times = []
     pyauto.click(x=1900, y=500)
+    test = True
     while 'Play':
-        last_time = time.time()
         state1, status = cfb.GrabScreen(statusRefImg, sct, full, colMin, colMax)
 
         if status == 'Play':
@@ -28,39 +26,38 @@ def PlayCurveFever(statusRefImg):
             if (len(states) == 3):
                 p1, p2 = cfb.proccesTwoStates(states[0], states[1], states[2])
                 fit, params, dists = cfb.getParameters(p1, p2)
-                times.append(time.time())
                 # imgView = cv2.line(state2,
                 #                   (int(p2[0]), int(p2[1])),
                 #                   (int(params['collisionPoint'][0]), int(params['collisionPoint'][1])),
                 #                   (255, 255, 255),
                 #                   2)
-                if params['walldist'] > 150:
-                    #print("UP   |", "DIST: ", params['walldist'], "ANGLE: ", params['angle'])
-                    #pyauto.keyUp('left')
-                    ReleaseKey(A)
+                # if params['walldist'] > 150:
+                #    #print("UP   |", "DIST: ", params['walldist'], "ANGLE: ", params['angle'])
+                #    #pyauto.keyUp('left')
+                #    ReleaseKey(A)
 
-                if params['walldist'] < 150:
+                if params['walldist'] < 150 and test:
                     # print("DOWN |", "DIST: ", params['walldist'], "ANGLE: ", params['angle'])
                     # pyauto.keyDown('left')
+                    press = np.abs(params['angle']) * 1.2 / 180
+                    print(press, "|", params['angle'])
                     PressKey(A)
+                    time.sleep(press)
+                    ReleaseKey(A)
+                    test = False
 
-                if len(times) == 2:
-                    print(times[1] - times[0])
-                    times.pop(0)
                 states.pop(0)
                 # print(status)
                 # print(p1, p2)
                 # print(fit)
                 # print(params)
                 # print(dists)
-        else:
+        #else:
             #imgView = state1
-            print(status)
+            #print(status)
 
         #cv2.imshow('View', imgView)
 
-        #fps.append(1 / (time.time() - last_time))
-        #print(np.median(np.asarray(fps)))
         #if cv2.waitKey(25) & 0xFF == ord("q"):
         #    cv2.destroyAllWindows()
         #    break
