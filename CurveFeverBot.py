@@ -69,34 +69,32 @@ def getDirection(p1, p2):
 
         return (makeDict(a, b, d))
 
-def GrabScreen(statusRefImg):
-    full = {"top": 10, "left": 1320, "width": 2535 - 1320, "height": 1023 - 10}
-    board = {"top": 125, "left": 1637, "width": 898, "height": 898}
-    pyauto.click(x=1900, y=500)
-    ScreenFull1 = np.array(mss.mss().grab(full))[:, :, 0:3]
-    time.sleep(0.01)
-    ScreenState2 = np.array(mss.mss().grab(board))[:, :, 0:3]
-    time.sleep(0.01)
-    ScreenState3 = np.array(mss.mss().grab(board))[:, :, 0:3]
 
-    if np.sum(ScreenFull1[0:25, 0:160, :] != statusRefImg) == 0:
+def GrabScreen(statusRefImg, sct, mon, colMin, colMax):
+    img = np.asarray(sct.grab(mon))[:, :, 0:3]
+
+    if np.sum(img[0:25, 0:160, :] != statusRefImg) == 0:
         status = "Play"
     else:
         status = "Wait"
 
-    ScreenState1 = ScreenFull1[115:, 317:, :]
+    ScreenState1 = cv2.inRange(img[115:, 317:, :], colMin, colMax)
 
-    return ScreenState1, ScreenState2, ScreenState3, status
+    return ScreenState1, status
 
 
 def proccesTwoStates(state1, state2, state3):
     # Filtering images
-    state1Filter = cv2.inRange(state1, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
-    state2Filter = cv2.inRange(state2, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
-    state3Filter = cv2.inRange(state3, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
+    #state1Filter = cv2.inRange(state1, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
+    # state2Filter = cv2.inRange(state2, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
+    #state3Filter = cv2.inRange(state3, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
+    diff1 = state2 - state1
+    diff2 = state3 - state2
+    p1 = np.mean(np.argwhere(diff1 == 255), axis=0)
+    p2 = np.mean(np.argwhere(diff2 == 255), axis=0)
 
-    p1 = np.mean(np.flip(np.argwhere(state2Filter - state1Filter == 255)), axis=0)
-    p2 = np.mean(np.flip(np.argwhere(state3Filter - state2Filter == 255)), axis=0)
+    p1 = np.flip(p1)
+    p2 = np.flip(p2)
 
     return p1, p2
 
