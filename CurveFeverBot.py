@@ -70,36 +70,33 @@ def getDirection(p1, p2):
         return (makeDict(a, b, d))
 
 def GrabScreen(statusRefImg):
-    full = {"top": 10, "left": 1320, "width": 2535-1320, "height": 1023-10}
+    full = {"top": 10, "left": 1320, "width": 2535 - 1320, "height": 1023 - 10}
     board = {"top": 125, "left": 1637, "width": 898, "height": 898}
     pyauto.click(x=1900, y=500)
     ScreenFull1 = np.array(mss.mss().grab(full))[:, :, 0:3]
-    time.sleep(0.05)
+    time.sleep(0.01)
     ScreenState2 = np.array(mss.mss().grab(board))[:, :, 0:3]
-    time.sleep(0.05)
+    time.sleep(0.01)
     ScreenState3 = np.array(mss.mss().grab(board))[:, :, 0:3]
-    
+
     if np.sum(ScreenFull1[0:25, 0:160, :] != statusRefImg) == 0:
         status = "Play"
     else:
         status = "Wait"
-    
+
     ScreenState1 = ScreenFull1[115:, 317:, :]
-    
+
     return ScreenState1, ScreenState2, ScreenState3, status
+
 
 def proccesTwoStates(state1, state2, state3):
     # Filtering images
     state1Filter = cv2.inRange(state1, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
     state2Filter = cv2.inRange(state2, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
     state3Filter = cv2.inRange(state3, np.array((69, 69, 255)) - 20, np.array((69, 69, 255)) + 20)
-    
-    # Getting coords of point
-    state1Position = trimImage(state2Filter - state1Filter, returnCoord=True)
-    state2Position = trimImage(state3Filter - state2Filter, returnCoord=True)
 
-    p1 = np.mean(state1Position, axis=1)
-    p2 = np.mean(state2Position, axis=1)
+    p1 = np.mean(np.flip(np.argwhere(state2Filter - state1Filter == 255)), axis=0)
+    p2 = np.mean(np.flip(np.argwhere(state3Filter - state2Filter == 255)), axis=0)
 
     return p1, p2
 
@@ -165,29 +162,29 @@ def getCollisionPoint(fit, p1, p2):
         yEnd = 898
         wall = 'bot'
 
-        
     return xEnd, yEnd, wall
+
 
 def getParameters(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
-    
+
     fit = getDirection(p1, p2)
-    
+
     xEnd, yEnd, wall = getCollisionPoint(fit, p1, p2)
-    
+
     distances = {
-        'left' : x2,
-        'right' : 898 - x2,
-        'top' : y2,
-        'bottom' : 898 - y2
+        'left': x2,
+        'right': 898 - x2,
+        'top': y2,
+        'bottom': 898 - y2
     }
-    
+
     params = {
-        'collisionPoint' : (xEnd, yEnd),
-        'angle' : np.arctan(fit['slope']) * 180/np.pi,
-        'wall' : wall,
-        'walldist' : distance.cdist([(xEnd, yEnd)], [(x2, y2)], 'euclidean')[0][0]
+        'collisionPoint': (xEnd, yEnd),
+        'angle': np.arctan(fit['slope']) * 180 / np.pi,
+        'wall': wall,
+        'walldist': distance.cdist([(xEnd, yEnd)], [(x2, y2)], 'euclidean')[0][0]
     }
-    
+
     return fit, params, distances
