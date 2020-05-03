@@ -186,3 +186,49 @@ def getParameters(p1, p2):
     }
 
     return fit, params, distances
+
+
+def trimROI(state, params, p2):
+    collPt = params['collisionPoint']
+    if collPt[0] > p2[0]:
+        c1 = p2[0] + 5
+        c2 = collPt[0]
+    else:
+        c1 = collPt[0]
+        c2 = p2[0] - 5
+
+    if collPt[1] > p2[1]:
+        r1 = p2[1] + 5
+        r2 = collPt[1]
+    else:
+        r1 = collPt[1]
+        r2 = p2[1] - 5
+
+    return np.array([c1, c2]), np.array([r1, r2])
+
+
+def collisionCheck(x, fit, diff):
+    res = x[0] - fit['slope'] * x[1] - fit['intercept'] + diff
+    return res
+
+
+def checkPathCollsion(state, fit, params, p2,):
+    c, r = trimROI(state, params, p2)
+
+    coordTrail = np.argwhere(state == 255)
+    l1 = (coordTrail[:, 0] < r[1]) & (coordTrail[:, 0] > r[0])
+    l2 = (coordTrail[:, 1] < c[1]) & (coordTrail[:, 1] > c[0])
+    coordTrail = coordTrail[l1 & l2]
+
+    if np.array(coordTrail.shape)[0] == 0:
+        return False
+    # Ytrail = coordTrail[:, 1]
+    # Xtrail = coordTrail[:, 0]
+
+    # Collision points
+    collPts = np.sum(np.abs(np.apply_along_axis(collisionCheck, 1, coordTrail, fit, 0)) < 10)
+
+    if collPts > 0:
+        return True
+    else:
+        return False
