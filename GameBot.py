@@ -8,16 +8,23 @@ from directKeys import PressKey, ReleaseKey, A, D
 
 statusRefImg = cv2.imread('statusReferenceImage.png')
 
-def PlayCurveFever(statusRefImg):
+def PlayCurveFever(statusRefImg, color):
     # Settings
+    colors = {
+        'red' : np.array((69, 69, 255)),
+        'pink' : np.array((186, 164, 255)),
+        'yellow' : np.array((43, 233, 255)),
+        'green': np.array((48, 255, 106)),
+        'aqua': np.array((192, 209, 2)),
+        'blue': np.array((255, 68, 68))
+    }
     full = {"top": 10, "left": 1320, "width": 2535 - 1320, "height": 1023 - 10}
     sct = mss.mss()
-    color = np.array((69, 69, 255)) # red
-    colMin = color - 20
-    colMax = color + 20
+    PlayerColor = colors[color] # red
+    colMin = PlayerColor - 20
+    colMax = PlayerColor + 20
     states = []
     pyauto.click(x=1900, y=500)
-    test = True
     while 'Play':
         state1, status = cfb.GrabScreen(statusRefImg, sct, full, colMin, colMax)
 
@@ -36,15 +43,15 @@ def PlayCurveFever(statusRefImg):
                 #    #pyauto.keyUp('left')
                 #    ReleaseKey(A)
 
-                if params['walldist'] < 150 and test:
+                # print(fit, params, dists)
+                if params['walldist'] < 150:
                     # print("DOWN |", "DIST: ", params['walldist'], "ANGLE: ", params['angle'])
                     # pyauto.keyDown('left')
-                    press = np.abs(params['angle']) * 1.2 / 180
-                    print(press, "|", params['angle'])
+                    #press = np.abs(params['angle']) * 1.2 / 180
+                    #print(press, "|", params['angle'])
                     PressKey(A)
-                    time.sleep(press)
+                    #time.sleep(press)
                     ReleaseKey(A)
-                    test = False
 
                 states.pop(0)
                 # print(status)
@@ -63,4 +70,4 @@ def PlayCurveFever(statusRefImg):
         #    break
 
 
-PlayCurveFever(statusRefImg)
+PlayCurveFever(statusRefImg, 'yellow')
