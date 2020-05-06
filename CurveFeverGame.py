@@ -29,7 +29,7 @@ draw(board, X, Y)
 draw(boardHIST, X, Y)
 print(X, Y, angle)
 for i in range(500):
-    move = np.random.choice(actions, p = [0.3, 0.3, 0.4])
+    move = np.random.choice(actions, p = [0.4, 0.3, 0.3])
     print(move)
     if move == 'left':
         angle -= 3.25
